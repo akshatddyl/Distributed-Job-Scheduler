@@ -11,7 +11,7 @@ import java.time.Instant;
 
 
 import com.distributedjobscheduler.model.Task;
-import com.distributedscheduler.model.TaskStatus;
+import com.distributedjobscheduler.model.TaskStatus;
 import com.distributedjobscheduler.repository.TaskRedisRepository;
 import com.distributedjobscheduler.retry.RetryHandler;
 import com.distributedjobscheduler.lock.RedisLockService;

@@ -16,8 +16,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @EnableWebSecurity
 @EnableMethodSecurity // Enables @PreAuthorize annotations
 public class SecurityConfig {
-
     @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+   /* @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // Updated for Spring Security 6+
@@ -37,6 +42,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+    */
 
     @Bean
     public JWTAuthenticationFilter jwtFilter() {
