@@ -7,6 +7,7 @@ import com.distributedjobscheduler.dto.TaskResponse;
 import com.distributedjobscheduler.model.Task;
 import com.distributedjobscheduler.service.TaskService;
 import jakarta.validation.Valid;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/tasks")
+@Profile({"api", "default"})
 public class TaskController {
 
     private final TaskService taskService;
@@ -31,7 +33,6 @@ public class TaskController {
         return ResponseEntity.ok(task);
     }
 
-    // 🔥 FIX: Added "/schedule" so it matches your curl command perfectly!
     @PostMapping("/schedule")
     public ResponseEntity<?> submitTask(@Valid @RequestBody TaskRequest request) {
         try {
