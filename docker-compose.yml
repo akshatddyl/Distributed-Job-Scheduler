@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # The Shared State Queue
+  redis:
+    image: redis:latest
+    container_name: redis-broker
+    ports:
+      - "6379:6379"
+
+  # The Ingestion Node (API)
+  api-service:
+    build:
+      context: ./runner
+      dockerfile: Dockerfile
+    container_name: scheduler-api
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=api
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      - redis
+
+  # The Execution Node (Worker 1)
+  worker-node-1:
+    build:
+      context: ./runner
+      dockerfile: Dockerfile
+    container_name: scheduler-worker-1
+    environment:
+      - SPRING_PROFILES_ACTIVE=worker
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      - redis
+
+  # The Execution Node (Worker 2)
+  worker-node-2:
+    build:
+      context: ./runner
+      dockerfile: Dockerfile
+    container_name: scheduler-worker-2
+    environment:
+      - SPRING_PROFILES_ACTIVE=worker
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      - redis

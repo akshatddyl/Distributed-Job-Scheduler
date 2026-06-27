@@ -3,6 +3,7 @@ package com.distributedjobscheduler.scheduler;
 import com.distributedjobscheduler.redis.RedisDelayQueueService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Profile; // 🟢 ADDED: Import for Spring Profiles
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Set;
@@ -17,6 +18,7 @@ import com.distributedjobscheduler.retry.RetryHandler;
 import com.distributedjobscheduler.lock.RedisLockService;
 
 @Component
+@Profile({"worker", "default"}) // 🟢 ADDED: This ensures the poller only activates for 'worker' or 'default' profiles
 public class DelayQueuePoller {
     private static final Logger logger = LoggerFactory.getLogger(DelayQueuePoller.class);
 
@@ -94,11 +96,11 @@ public class DelayQueuePoller {
  * ```json
  * POST /tasks
  * {
- *   "id": "task123",
- *   "tenantId": "default",
- *   "payload": { "email": "user@example.com", "message": "Your order is confirmed!" },
- *   "delaySeconds": 10,
- *   "maxRetries": 3
+ * "id": "task123",
+ * "tenantId": "default",
+ * "payload": { "email": "user@example.com", "message": "Your order is confirmed!" },
+ * "delaySeconds": 10,
+ * "maxRetries": 3
  * }
  * ```
  *

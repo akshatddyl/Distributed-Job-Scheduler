@@ -3,14 +3,20 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/tasksdb
-    username: postgres
-    password: password
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tasksdb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
+  # Updated for newer Spring Boot compatibility
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+  # Kept as fallback for older Jedis/Lettuce dependencies
   redis:
-    host: localhost
-    port: 6379
+    host: ${SPRING_REDIS_HOST:localhost}
+    port: ${SPRING_REDIS_PORT:6379}
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
   security:
     user:
       name: admin
