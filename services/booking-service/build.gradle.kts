@@ -1,6 +1,12 @@
-// Booking service — no main class yet; Spring Boot plugin will be applied
-// when the service application is implemented.
+plugins {
+    id("org.springframework.boot")
+}
 
 dependencies {
     implementation(project(":shared"))
+
+    // Database
+    runtimeOnly("org.postgresql:postgresql")
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-database-postgresql")
 }

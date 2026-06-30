@@ -25,6 +25,7 @@ import java.util.UUID;
 public class InventoryController {
 
     private final InventoryService inventoryService;
+    private final com.bookmyticket.inventoryservice.service.SeatLockService seatLockService;
 
     @PostMapping("/seats")
     @ResponseStatus(HttpStatus.CREATED)
@@ -46,5 +47,11 @@ public class InventoryController {
     @GetMapping("/seats/available")
     public ResponseWrapper<List<SeatResponse>> getAvailableSeats(@RequestParam UUID eventId) {
         return ResponseWrapper.success("Available seats retrieved successfully", inventoryService.getAvailableSeats(eventId));
+    }
+
+    @PostMapping("/seats/lock")
+    public ResponseWrapper<Void> lockSeats(@Valid @RequestBody com.bookmyticket.inventoryservice.dto.LockSeatsRequest request) {
+        seatLockService.lockSeats(request);
+        return ResponseWrapper.success("Seats locked successfully", null);
     }
 }

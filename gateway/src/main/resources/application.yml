@@ -25,6 +25,11 @@ spring:
               predicates:
                 - Path=/api/inventory/**
 
+            - id: booking-service
+              uri: http://localhost:8084
+              predicates:
+                - Path=/api/bookings/**
+
 # Must match the same secret used by services for JWT signing
 jwt:
   secret: bXktc3VwZXItc2VjcmV0LWp3dC1rZXktZm9yLWJvb2tteXRpY2tldC1wbGF0Zm9ybS1kZXYtb25seQ==
