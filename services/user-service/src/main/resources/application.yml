@@ -1,0 +1,30 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: user-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bookmyticket_users
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+# JWT Configuration (dev-only secret — override in production)
+jwt:
+  secret: bXktc3VwZXItc2VjcmV0LWp3dC1rZXktZm9yLWJvb2tteXRpY2tldC1wbGF0Zm9ybS1kZXYtb25seQ==
+  expiration-ms: 86400000  # 24 hours

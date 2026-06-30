@@ -1,10 +1,15 @@
 // The shared module is a plain Java library — it does NOT boot as a Spring app.
-// It only provides common entities, DTOs, and exception handlers for other modules.
+// Uses `api` configuration so consumers transitively get web/jpa/validation.
 plugins {
     `java-library`
 }
 
-// Disable Spring Boot's fat-jar packaging (this is a library, not a runnable app)
+dependencies {
+    api("org.springframework.boot:spring-boot-starter-web")
+    api("org.springframework.boot:spring-boot-starter-data-jpa")
+    api("org.springframework.boot:spring-boot-starter-validation")
+}
+
 tasks.named<Jar>("jar") {
     archiveBaseName.set("shared")
 }
