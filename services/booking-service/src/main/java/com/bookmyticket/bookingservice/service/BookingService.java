@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
@@ -27,9 +28,13 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final RestClient restClient;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Value("${app.inventory-service-url}")
     private String inventoryServiceUrl;
+
+    @Value("${app.payment-service-url}")
+    private String paymentServiceUrl;
 
     @Transactional
     public BookingResponse createBooking(CreateBookingRequest request, UUID userId) {
@@ -90,6 +95,63 @@ public class BookingService {
         return bookingRepository.findByUserId(userId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public BookingResponse payForBooking(UUID bookingId, UUID userId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+
+        if (!booking.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("Booking does not belong to user");
+        }
+
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new IllegalStateException("Booking is not in PENDING state");
+        }
+
+        List<UUID> seatIds = booking.getSeats().stream()
+                .map(BookingSeat::getSeatId)
+                .collect(Collectors.toList());
+
+        Map<String, Object> paymentPayload = Map.of(
+                "bookingId", bookingId,
+                "userId", userId,
+                "amount", booking.getTotalAmount()
+        );
+
+        boolean paymentSuccess = false;
+        try {
+            restClient.post()
+                    .uri(paymentServiceUrl + "/api/payments/process")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(paymentPayload)
+                    .retrieve()
+                    .toBodilessEntity();
+            paymentSuccess = true;
+        } catch (RestClientResponseException e) {
+            log.warn("Payment failed for booking {}: {}", bookingId, e.getResponseBodyAsString());
+        } catch (Exception e) {
+            log.error("Error communicating with payment-service", e);
+        }
+
+        if (paymentSuccess) {
+            booking.setStatus(BookingStatus.CONFIRMED);
+            bookingRepository.save(booking);
+            com.bookmyticket.shared.event.BookingConfirmedEvent event = new com.bookmyticket.shared.event.BookingConfirmedEvent(
+                    bookingId, booking.getEventId(), userId, seatIds);
+            kafkaTemplate.send("booking-events", bookingId.toString(), event);
+            log.info("Booking {} confirmed. Event published.", bookingId);
+        } else {
+            booking.setStatus(BookingStatus.CANCELLED);
+            bookingRepository.save(booking);
+            com.bookmyticket.shared.event.BookingFailedEvent event = new com.bookmyticket.shared.event.BookingFailedEvent(
+                    bookingId, booking.getEventId(), userId, seatIds, "Payment Failed");
+            kafkaTemplate.send("booking-events", bookingId.toString(), event);
+            log.info("Booking {} cancelled. Event published.", bookingId);
+        }
+
+        return mapToResponse(booking);
     }
 
     private BookingResponse mapToResponse(Booking booking) {

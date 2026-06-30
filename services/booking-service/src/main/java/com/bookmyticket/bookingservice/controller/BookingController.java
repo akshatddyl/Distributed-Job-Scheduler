@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -38,5 +39,13 @@ public class BookingController {
     public ResponseWrapper<List<BookingResponse>> getMyBookings(@RequestHeader("X-User-Id") UUID userId) {
         List<BookingResponse> responses = bookingService.getUserBookings(userId);
         return ResponseWrapper.success("Bookings retrieved successfully", responses);
+    }
+
+    @PostMapping("/{bookingId}/pay")
+    public ResponseWrapper<BookingResponse> payForBooking(
+            @PathVariable UUID bookingId,
+            @RequestHeader("X-User-Id") UUID userId) {
+        BookingResponse response = bookingService.payForBooking(bookingId, userId);
+        return ResponseWrapper.success("Payment workflow completed", response);
     }
 }

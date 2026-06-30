@@ -7,6 +7,7 @@ import com.bookmyticket.inventoryservice.repository.SeatRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,6 +71,30 @@ public class SeatLockService {
                 redisTemplate.delete(LOCK_PREFIX + seatId);
             }
             throw new IllegalArgumentException("Failed to lock seats: " + e.getMessage(), e);
+        }
+    }
+
+    @KafkaListener(topics = "booking-events", groupId = "inventory-service-group")
+    @Transactional
+    public void handleBookingEvents(org.apache.kafka.clients.consumer.ConsumerRecord<String, Object> record) {
+        Object value = record.value();
+        
+        if (value instanceof com.bookmyticket.shared.event.BookingConfirmedEvent event) {
+            log.info("Received BookingConfirmedEvent for booking {}", event.bookingId());
+            List<Seat> seats = seatRepository.findAllById(event.seatIds());
+            for (Seat seat : seats) {
+                seat.setStatus(SeatStatus.BOOKED);
+                redisTemplate.delete(LOCK_PREFIX + seat.getId());
+            }
+            seatRepository.saveAll(seats);
+        } else if (value instanceof com.bookmyticket.shared.event.BookingFailedEvent event) {
+            log.info("Received BookingFailedEvent for booking {}", event.bookingId());
+            List<Seat> seats = seatRepository.findAllById(event.seatIds());
+            for (Seat seat : seats) {
+                seat.setStatus(SeatStatus.AVAILABLE);
+                redisTemplate.delete(LOCK_PREFIX + seat.getId());
+            }
+            seatRepository.saveAll(seats);
         }
     }
 }

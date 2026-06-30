@@ -1,0 +1,9 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: payment-service
+
+jwt:
+  secret: bXktc3VwZXItc2VjcmV0LWp3dC1rZXktZm9yLWJvb2tteXRpY2tldC1wbGF0Zm9ybS1kZXYtb25seQ==

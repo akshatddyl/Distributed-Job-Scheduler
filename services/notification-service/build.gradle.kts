@@ -1,5 +1,6 @@
-// Notification service — no main class yet; Spring Boot plugin will be applied
-// when the service application is implemented.
+plugins {
+    id("org.springframework.boot")
+}
 
 dependencies {
     implementation(project(":shared"))

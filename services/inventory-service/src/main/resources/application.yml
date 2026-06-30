@@ -26,5 +26,15 @@ spring:
       host: localhost
       port: 6379
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: inventory-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
 jwt:
   secret: bXktc3VwZXItc2VjcmV0LWp3dC1rZXktZm9yLWJvb2tteXRpY2tldC1wbGF0Zm9ybS1kZXYtb25seQ==
